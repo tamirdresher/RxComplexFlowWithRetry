@@ -27,7 +27,7 @@
             <ColumnDefinition Width="249*"/>
         </Grid.ColumnDefinitions>
 
-        <GroupBox Header="Pending">
+        <GroupBox Header="Incoming items">
             <ListBox ItemsSource="{Binding PendingItems}" />
         </GroupBox>
         <GroupBox Header="Finished" Grid.Column="1" Grid.Row="0" >
