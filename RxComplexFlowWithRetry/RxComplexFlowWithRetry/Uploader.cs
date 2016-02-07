@@ -1,4 +1,8 @@
-﻿namespace RxComplexFlowWithRetry
+﻿using System.Collections.Concurrent;
+using System.Reactive;
+using System.Reactive.Subjects;
+
+namespace RxComplexFlowWithRetry
 {
     using System;
     using System.Reactive.Linq;
@@ -7,12 +11,21 @@
     public class Uploader
     {
         private static Random random = new Random((int)DateTime.Now.Ticks);
+        private Subject<Item> _failedSubject;
+        private ConcurrentQueue<Item> _failingQueue = new ConcurrentQueue<Item>();
+        Subject<Unit> _retries = new Subject<Unit>();
+
+
         private const int UploadFailureProbability = 80;
 
         public Uploader(IObservable<Item> items)
         {
-            UploadedItems = items.Select(item => Upload(item));
-            Failed = Observable.Empty<Item>();
+            _failedSubject = new Subject<Item>();
+
+            UploadedItems = _failingQueue.ToObservable().Concat(items).Select(item => Upload(item))
+               .TakeUntil(Failed)
+               .SkipUntil(_retries.StartWith(Unit.Default))
+               .Repeat();
         }
 
         private static bool ShouldThrow
@@ -27,7 +40,7 @@
 
         public IObservable<Item> Failed
         {
-            get; private set;
+            get { return _failedSubject.AsObservable(); }
         }
 
         private UploadResults Upload(Item item)
@@ -36,7 +49,8 @@
 
             if (ShouldThrow)
             {
-                throw new InvalidOperationException("Upload failed");
+                _failingQueue.Enqueue(item);
+                _failedSubject.OnNext(item);
             }
 
             return new UploadResults(item);
@@ -45,7 +59,7 @@
 
         public void RetryFailedItem()
         {
-            throw new NotImplementedException();
+            _retries.OnNext(Unit.Default);
         }
     }
 }
