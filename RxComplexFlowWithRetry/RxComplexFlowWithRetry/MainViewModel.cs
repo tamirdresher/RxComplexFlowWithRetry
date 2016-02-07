@@ -20,7 +20,8 @@
             var itemsObservable = Observable
                 .Interval(TimeSpan.FromSeconds(5))
                 .Select(id => new Item(string.Format("Item {0}", id + 1)))
-                .Take(15);
+                .Take(15)
+                .Publish();
 
             // We observe the incoming items to show them into the view
             itemsObservable
@@ -40,6 +41,8 @@
 
             PendingItems = new ObservableCollection<Item>();
             UploadedItems =  new ObservableCollection<UploadResults>();
+
+            itemsObservable.Connect();
         }
 
         // When and item fails, it will be put inside this property
