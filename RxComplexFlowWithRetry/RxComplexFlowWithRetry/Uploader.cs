@@ -23,11 +23,11 @@
             }
         }
 
-        public IObservable<UploadResults> UploadedItems { get; }
+        public IObservable<UploadResults> UploadedItems { get; private set; }
 
         public IObservable<Item> Failed
         {
-            get;
+            get; private set;
         }
 
         private UploadResults Upload(Item item)

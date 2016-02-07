@@ -28,20 +28,23 @@
             uploader.UploadedItems
                .ObserveOnDispatcher()
                .Subscribe(uploadResults => UploadedItems.Add(uploadResults));
-            
+
             uploader.Failed.Subscribe(failedItem => FailedItem = failedItem);
 
             //The command that will be invoked when the user "fixes" an item and wants to retry it. It will be available only when there is a item that failed to upload.
             RetryCommand = new RelayCommand(_ => Retry(), _ => FailedItem != null);
+
+            PendingItems = new ObservableCollection<Item>();
+            UploadedItems =  new ObservableCollection<UploadResults>();
         }
 
         // When and item fails, it will be put inside this property
         public Item FailedItem { get; set; }
 
-        public ObservableCollection<Item> PendingItems { get; set; } = new ObservableCollection<Item>();
-        public ObservableCollection<UploadResults> UploadedItems { get; set; } = new ObservableCollection<UploadResults>();
+        public ObservableCollection<Item> PendingItems { get; set; }
+        public ObservableCollection<UploadResults> UploadedItems { get; set; }
 
-        public ICommand RetryCommand { get; }
+        public ICommand RetryCommand { get; private set; }
 
         private void Retry()
         {
